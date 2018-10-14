@@ -14,14 +14,14 @@ typedef unsigned cost_t;
 cost_t MAX_POSSIBLE_COST = -1;
 
 size_t const MAX_ARRAY_SIZE = 100;
-cost_t table[MAX_ARRAY_SIZE][MAX_ARRAY_SIZE];
+cost_t minCuts[MAX_ARRAY_SIZE][MAX_ARRAY_SIZE];
 cost_t array[MAX_ARRAY_SIZE];
 size_t N;
 
 
 cost_t minCost(size_t start, size_t end) {
     assert(end - start >= 2);
-    if (table[start][end] != -1) return table[start][end];
+    if (minCuts[start][end] != -1) return minCuts[start][end];
     
     cost_t res;
     switch (end - start) {
@@ -45,14 +45,14 @@ cost_t minCost(size_t start, size_t end) {
         }
     }
     
-    table[start][end] = res;
+    minCuts[start][end] = res;
     return res;
 }
 
 int main() {
     size_t numberOfTestCases; scanf("%lu", &numberOfTestCases);
     for (size_t i = 0; i < numberOfTestCases; ++i) {
-        memset(table, -1, sizeof(table));
+        memset(minCuts, -1, sizeof(minCuts));
         scanf("%lu", &N);
         for (size_t i = 0; i < N; ++i) {
             scanf("%u", &array[i]);
