@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include <cassert>
+#include <string>
+#include <iostream>
+//#include <cassert>
 
 size_t const MaxStringLength = 1000;
 char str[MaxStringLength + 1];
@@ -13,40 +15,104 @@ enum class Research: char { unchecked=-1, no=0, yes=1 };
 
 Research isPalindromeTable[MaxStringLength][MaxStringLength];
 
+void printPalindromeTable() {
+    printf("start of printPalindromeTable\n");
+    for (size_t i = 0; i < strLen; ++i) {
+        for (size_t j = 0; j < strLen; ++j) {
+            char c;
+            switch(isPalindromeTable[i][j]) {
+                case Research::unchecked: c = '_'; break;
+                case Research::yes      : c = 'y'; break;
+                case Research::no       : c = 'n'; break;
+                default: throw ;
+            }
+            printf("%c ", c);
+        }
+        printf("\n");
+    }
+    printf("end of printPalindromeTable\n");
+}
+
+bool noUncheckedValsLeft() {
+    for (size_t i = 0; i < strLen; ++i) {
+        for (size_t j = i; j < strLen; ++j) {
+            if (isPalindromeTable[i][j] == Research::unchecked) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void performTabulationForPalindromeTable() {
+    for (size_t offset = 0; offset < strLen; ++offset) {
+        for (size_t start = 0; start + offset < strLen; ++start) {
+            size_t end = start + offset;
+            auto res = Research::unchecked;
+            if (start == end) {
+                res = Research::yes;
+            } else {
+                if (str[start] == str[end]) {
+                    if (end - start == 1) {
+                        res = Research::yes;  
+                    } else {
+                        res = isPalindromeTable[start + 1][end - 1];
+                    }
+                } else {
+                    res = Research::no;
+                }
+            }
+            //assert(res != Research::unchecked);
+            isPalindromeTable[start][end] = res;
+        }
+    }
+    
+    //assert(noUncheckedValsLeft());
+}
+
 // start is the index of the first character,
 // end is the index of the character past the 
 // last character (as usual)
 bool isPalindrome(index_t start, index_t end) {
     size_t const startIdx = start - str;
     size_t const endIdx = end - str;
-    if (isPalindromeTable[startIdx][endIdx] != Research::unchecked) {
-        return isPalindromeTable[startIdx][endIdx] == Research::yes;
-    } else {
-        auto res = Research::unchecked;
-        
-        --end;
-        
-        if (start == end) {
-            res = Research::yes;
-        } else if (*start != *end) {
-            res = Research::no;
-        } else {
-            ++start;
-        
-            if (start == end) {
-                res = Research::yes;
-            } else {
-                res = isPalindrome(start, end) ? Research::yes : Research::no;
-            }
-        }
-        
-        isPalindromeTable[startIdx][endIdx] = res;
-        
-        return res == Research::yes;
-    }
+    return isPalindromeTable[startIdx][endIdx - 1] == Research::yes;
 }
 
 cut_t table[MaxStringLength][MaxStringLength];
+
+void performTabulationForNumberOfCuts() {
+    for (size_t start = 0; start < strLen; ++start) {
+        size_t const offset = 0;
+        table[offset][start] = 0; // we need zero cuts for strings of length 1
+    }
+    
+    for (size_t offset = 1; offset < strLen; ++offset) {
+        for (size_t start = 0; start + offset < strLen; ++start) {
+            size_t end = start + offset;
+            cut_t res = -1;
+            if (isPalindromeTable[start][end] == Research::yes) {
+                res = 0;
+            } else {
+                cut_t minCuts = MaxPossibleCuts;
+                for (size_t i = start; i < end; ++i) {
+                    size_t const start1 = start;
+                    size_t const offset1 = i - start1;
+                    size_t const start2 = i + 1;
+                    size_t const offset2 = end - start2;
+//                    printf("start1: %zu, offset1:%zu, start2: %zu, offset2:%zu\n", start1, offset1, start2, offset2);
+                    cut_t currCuts = table[offset1][start1] + 1 + table[offset2][start2];
+                    if (minCuts > currCuts) minCuts = currCuts;
+                }
+                res = minCuts;
+            }
+            
+//            printf("res : %i\n", res);
+            //assert(res != -1);
+            table[offset][start] = res;
+        }
+    }
+}
 
 // end also points to some segfault-prone end of the line (or null char)
 cut_t numberOfCuts(index_t start, index_t end) {
@@ -82,24 +148,17 @@ int main() {
     size_t numberOfTestCases; scanf("%lu", &numberOfTestCases);
     getchar(); // skip one newline char
     for (size_t i = 0; i < numberOfTestCases; ++i) {
-        memset(table, -1, sizeof table);
-        memset(isPalindromeTable, (char) Research::unchecked, sizeof isPalindromeTable);
         fgets(str, MaxStringLength, stdin);
         strLen = strlen(str);
         if (str[strLen - 1] == '\n') {
             --strLen;
             str[strLen] = '\0';
         }
-        for (size_t i = 0; i < strLen; ++i) {
-            for (size_t j = 0; (i + j) <= strLen; ++j) {
-                isPalindrome(str + i, str + i + j);
-            }
-        }
         
-        printf("%u\n", numberOfCuts(str, str + strLen));
-        // printf("%u %s \n", strLen, str);
-        // printf("%i\n", (int)str[strLen]);
+        performTabulationForPalindromeTable();
+        performTabulationForNumberOfCuts();
+        
+        printf("%u\n", table[strLen - 1][0]);
     }
     return 0;
 }
-
