@@ -15,35 +15,6 @@ enum class Research: char { unchecked=-1, no=0, yes=1 };
 
 Research isPalindromeTable[MaxStringLength][MaxStringLength];
 
-void printPalindromeTable() {
-    printf("start of printPalindromeTable\n");
-    for (size_t i = 0; i < strLen; ++i) {
-        for (size_t j = 0; j < strLen; ++j) {
-            char c;
-            switch(isPalindromeTable[i][j]) {
-                case Research::unchecked: c = '_'; break;
-                case Research::yes      : c = 'y'; break;
-                case Research::no       : c = 'n'; break;
-                default: throw ;
-            }
-            printf("%c ", c);
-        }
-        printf("\n");
-    }
-    printf("end of printPalindromeTable\n");
-}
-
-bool noUncheckedValsLeft() {
-    for (size_t i = 0; i < strLen; ++i) {
-        for (size_t j = i; j < strLen; ++j) {
-            if (isPalindromeTable[i][j] == Research::unchecked) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void performTabulationForPalindromeTable() {
     for (size_t offset = 0; offset < strLen; ++offset) {
         for (size_t start = 0; start + offset < strLen; ++start) {
@@ -62,12 +33,9 @@ void performTabulationForPalindromeTable() {
                     res = Research::no;
                 }
             }
-            //assert(res != Research::unchecked);
             isPalindromeTable[start][end] = res;
         }
     }
-    
-    //assert(noUncheckedValsLeft());
 }
 
 // start is the index of the first character,
@@ -107,8 +75,6 @@ void performTabulationForNumberOfCuts() {
                 res = minCuts;
             }
             
-//            printf("res : %i\n", res);
-            //assert(res != -1);
             table[offset][start] = res;
         }
     }
